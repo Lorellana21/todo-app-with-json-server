@@ -1,70 +1,73 @@
-# Getting Started with Create React App
+## Conceptos
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+- API Rest, [json-server](https://github.com/typicode/json-server) y   [Postman](https://www.postman.com/)
 
-## Available Scripts
+- Llamadas al backend de una app React
 
-In the project directory, you can run:
+- Formularios, con validación
 
-### `npm start`
+## API Rest, json-server, Postman
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- ¿Qué es una API Rest?
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Ejecutar el servidor local de mocks
+  ([json-server](https://github.com/typicode/json-server))
+  en una nueva consola:
+  ```
+  cd mocks-server
+  npm i
+  npm start
+  ```
 
-### `npm test`
+- Instalar [Postman](https://www.postman.com/) y probar la API Rest de tareas que expone el servidor local de mocks:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+    - `GET /tasks`: Obtiene la lista de tareas.
+    - `GET /tasks/:id`: Obtiene la tarea con id `id`.
+    - `POST /tasks + body`: Crea una nueva tarea (el `body` va sin `id`).
+    - `PUT /tasks/:id + body`: Actualiza la tarea con id `id`.
+    - `PATCH /tasks/:id + body`: Actualiza determinadas propiedades de la tarea
+      con id `id`.
+    - `DELETE /tasks/:id`: Elimina la tarea con id `id`.
 
-### `npm run build`
+## Llamadas al backend de una app React, con feedback de cargas y errores ([demo](https://at-react-course.herokuapp.com/tasks)) ([explanation-1](explanation-1))
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Partiremos de la estructura base de aplicación de lista de tareas que se ofrece en [explanation-1-base](explanation-1-base). Integraremos la app con un backend para que funcione como se observa en esta [demo](https://at-react-course.herokuapp.com/tasks).
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Preparemos el componente _App_ para mostrar los componentes visuales apropiados según los diferentes estados que puede tener la interfaz:
+  
+  - Cargando la lista de tareas
+  - Ocurrió un error al cargar la lista de tareas
+  - Procesando una petición (añadir, borrar o alternar si está hecha una tarea).
+  - Ocurrió un error al procesar una petición.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Para hacer las llamadas al backend desde el frontend, usaremos
+  [axios](https://github.com/axios/axios):
+  ```
+  npm i axios
+  ```
+  
+- Crear un archivo services/TaskListService.js que contendrá la lógica de llamadas al backend.
+  
+- El lugar correcto para definir la ruta de la URL base de los servicios de backend es en una variable de entorno. Puedes
+  [definir variables de entorno en un proyecto create-react-app](https://create-react-app.dev/docs/adding-custom-environment-variables/#adding-development-environment-variables-in-env)
+  en el archivo [.env](../../.env) de la raíz del proyecto.
+  
+- Deben estar prefijadas con `REACT_APP_`. Por ejemplo:
+  ```
+  REACT_APP_BASE_URL=http://localhost:3003
+  ```
+  Luego en el código de la aplicación se consulta con:
+  ```
+  process.env.REACT_APP_BASE_URL
+  ```
 
-### `npm run eject`
+- Definamos en el servicio el método `getAll()` que invoca al backend para obtener la lista de tareas.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- La consulta del resultado que devuelve una 
+  [Promesa](https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/Promise),
+  que es el tipo de datos que devuelven las funciones de axios, se debe hacer
+  usando: `async` y `await`, junto con `try` y `catch`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Implementar la carga inicial de la lista de tareas dando feedback del proceso de carga, informar del posible error que se produzca y, en tal caso, ofrecer la posibilidad de reintentarlo.
+  
+- Para el resto de operaciones con la lista, deshabilitarla mientras se esté ejecutando un procesamiento y mostrar el Snackbar de error en el caso de que haya ocurrido algún error.
