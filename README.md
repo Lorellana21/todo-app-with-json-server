@@ -1,4 +1,4 @@
-# todo-app-with-mocks-server
+# todo-app-with-json-server
 
 ## What is this for?
 
@@ -6,69 +6,66 @@
 
 - API Rest, [json-server](https://github.com/typicode/json-server) y [Postman](https://www.postman.com/)
 
-- Llamadas al backend de una app React
+- React app backend calls
+
+- Hook **useCallback**: it leaves the function reference frozen. When it's a function that parent component passes to a child component, we don't want it to be rendered on the child every time the parent changes. "Functions also have a reference".
+[Example here](https://www.w3schools.com/react/react_usecallback.asp)
 
 
 ## How to use it?
 
-- Ejecutar el servidor local de mocks
-  ([json-server](https://github.com/typicode/json-server))
-  en una nueva consola:
+- Run the local mocks server ([json-server](https://github.com/typicode/json-server)) en una nueva consola:
   ```
   cd mocks-server
   npm i
   npm start
   ```
 
-- En [Postman](https://www.postman.com/) probar la API Rest de tareas que expone el servidor local de mocks:
+- In [Postman](https://www.postman.com/) test the Rest API of tasks that exposes the local mocks server:
 
-    - `GET /tasks`: Obtiene la lista de tareas.
-    - `GET /tasks/:id`: Obtiene la tarea con id `id`.
-    - `POST /tasks + body`: Crea una nueva tarea (el `body` va sin `id`).
-    - `PUT /tasks/:id + body`: Actualiza la tarea con id `id`(machaca el objeto entero)
-    - `PATCH /tasks/:id + body`: Modifica determinadas propiedades de la tarea con id `id`.
-    - `DELETE /tasks/:id`: Elimina la tarea con id `id`.
+    - `GET /tasks`: Gets the task list.
+    - `GET /tasks/:id`: Gets the task with id `id`.
+    - `POST /tasks + body`: Create a new task (the `body` goes without `id`). 
+    - `PUT /tasks/:id + body`: Update the task with id `id`(mashes the whole object)
+    - `PATCH /tasks/:id + body`: Modifies certain properties of the task with id `id`.
+    - `DELETE /tasks/:id`: Delete the task with id `id`.
     - `COPY`
     - `HEAD`
-    - `OPTIONS`: relacionado con las CORS, no te da información desde JavaScript.
+    - `OPTIONS`: related to CORS, it does not give you information from JavaScript.
 
-## Llamadas al backend de una app React, con feedback de cargas y errores ([demo](https://at-react-course.herokuapp.com/tasks)) 
+## React app backend calls, with load and error feedback ([demo](https://at-react-course.herokuapp.com/tasks)) 
 
-- He integrado la app con un backend para que funcione como se observa en esta [demo](https://at-react-course.herokuapp.com/tasks).
-
-- He preparado el componente _App_ para mostrar los componentes visuales apropiados según los diferentes estados que puede tener la interfaz:
+- The _App_ component is prepared to display the appropriate visual components according to the different states that the interface may have:
   
-  - Cargando la lista de tareas
-  - Ocurrió un error al cargar la lista de tareas
-  - Procesando una petición (añadir, borrar o alternar si está hecha una tarea).
-  - Ocurrió un error al procesar una petición.
+  - Loading the task list
+  - An error occurred while loading the task list.
+  - Processing a request (add, delete or toggle if a task is done).
+  - An error occurred while processing a request.
 
-- Para hacer las llamadas al backend desde el frontend, uso [axios](https://github.com/axios/axios):
+- To make calls to the backend from the frontend, I use [axios](https://github.com/axios/axios):
   ```
-  npm i axios
+  npm i axios --save
   ```
-  
-- He creado un archivo services/TaskListService.js que contendrá la lógica de llamadas al backend.
-  
-- El lugar correcto para definir la ruta de la URL base de los servicios de backend es en una variable de entorno. Se puede 
-[definir variables de entorno en un proyecto create-react-app](https://create-react-app.dev/docs/adding-custom-environment-variables/#adding-development-environment-variables-in-env) en el archivo [.env] de la raíz del proyecto: 
 
-  Deben estar prefijadas con `REACT_APP_`. Por ejemplo:
+- The services/TaskListService.js file will contain the backend call logic.
+  
+- The correct place to define the path to the base URL of the backend services is in an environment variable. It is possible to
+[define environment variables in a project create-react-app](https://create-react-app.dev/docs/adding-custom-environment-variables/#adding-development-environment-variables-in-env) in the file [.env] of the project root: 
+
+  They must be prefixed with `REACT_APP_`. For example
   ```
   REACT_APP_BASE_URL=http://localhost:3003
   ```
-  Luego en el código de la aplicación se consulta con:
+  Then, in the application code it is queried with:
   ```
   process.env.REACT_APP_BASE_URL
   ```
 
-- Defino en el servicio el método `getAll()` que invoca al backend para obtener la lista de tareas.
+- I define in the service the `getAll()` method that invokes the backend to get the list of tasks.
 
-- La consulta del resultado que devuelve una 
-  [Promesa](https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/Promise),
-  que es el tipo de datos que devuelven las funciones de axios, se debe hacer
-  usando: `async` y `await`, junto con `try` y `catch`.
+- The result query returning a 
+  [Promise](https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/Promise),
+  which is the type of data returned by the axios functions, must be done using `async` and `await`, along with `try` and `catch`.
 
-- Hay que implementar la carga inicial de la lista de tareas dando feedback del proceso de carga, informar del posible error que se produzca y, en tal caso, ofrecer la posibilidad de reintentarlo.
+- The **initial loading of the task list** is implemented, giving feedback on the loading process, informing about possible errors and offering the possibility to retry.
   
-- Para el resto de operaciones con la lista, deshabilitarla mientras se esté ejecutando un procesamiento y mostrar el Snackbar de error en el caso de que haya ocurrido algún error.

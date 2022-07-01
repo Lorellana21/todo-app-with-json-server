@@ -4,6 +4,7 @@ import { BASE_URL } from './serviceUtils';
 
 /**
  * get all Task from backend
+ * Va a llamar al API
  * 
  */
 export const getAll = (num) => {

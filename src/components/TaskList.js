@@ -1,49 +1,52 @@
-import { useState } from 'react';
-import PropTypes from 'prop-types';
+import { useState } from "react";
+import PropTypes from "prop-types";
 
-import List from '@mui/material/List';
-import TextField from '@mui/material/TextField';
+import List from "@mui/material/List";
+import TextField from "@mui/material/TextField";
 
-import TasksListItem from './TaskListItem';
-import TaskListAddButton from './TaskListAddButton';
+import TasksListItem from "./TaskListItem";
+import TaskListAddButton from "./TaskListAddButton";
 
-const TasksList = ({ disabled, tasks, onDeleteTask, onCreateTask,
-  onToggleDoneTask }) => {
-
-  const [description, setDescription] = useState('');
+const TasksList = ({
+  disabled,
+  tasks,
+  onDeleteTask,
+  onCreateTask,
+  onToggleDoneTask,
+}) => {
+  const [description, setDescription] = useState("");
 
   const descriptionChange = (event) => {
     setDescription(event.target.value);
   };
 
   const descriptionKeyPress = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       processTaskSubmit();
     }
   };
 
   const processTaskSubmit = () => {
     onCreateTask(description);
-    setDescription('');
+    setDescription("");
   };
 
   const addButton = (
-    <TaskListAddButton
-      disabled={disabled}
-      onClick={processTaskSubmit} />
+    <TaskListAddButton disabled={disabled} onClick={processTaskSubmit} />
   );
 
   return (
     <>
       <List>
-        {tasks.map(task => (
+        {tasks.map((task) => (
           <TasksListItem
             key={task.id}
             description={task.description}
             isDone={task.isDone}
             disabled={disabled}
             onToggleDone={() => onToggleDoneTask(task)}
-            onDelete={() => onDeleteTask(task)} />
+            onDelete={() => onDeleteTask(task)}
+          />
         ))}
       </List>
       <TextField
@@ -54,28 +57,31 @@ const TasksList = ({ disabled, tasks, onDeleteTask, onCreateTask,
         fullWidth={true}
         InputProps={{ endAdornment: addButton }}
         onChange={descriptionChange}
-        onKeyPress={descriptionKeyPress} />
+        onKeyPress={descriptionKeyPress}
+      />
     </>
   );
 };
 
 TasksList.defaultProps = {
   disabled: false,
-  onDeleteTask: () => { },
-  onCreateTask: () => { },
-  onToggleDoneTask: () => { }
+  onDeleteTask: () => {},
+  onCreateTask: () => {},
+  onToggleDoneTask: () => {},
 };
 
 TasksList.propTypes = {
   disabled: PropTypes.bool,
-  tasks: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    description: PropTypes.string.isRequired,
-    isDone: PropTypes.bool.isRequired
-  })).isRequired,
+  tasks: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      description: PropTypes.string.isRequired,
+      isDone: PropTypes.bool.isRequired,
+    })
+  ).isRequired,
   onDeleteTask: PropTypes.func,
   onCreateTask: PropTypes.func,
-  onToggleDoneTask: PropTypes.func
+  onToggleDoneTask: PropTypes.func,
 };
 
 export default TasksList;
