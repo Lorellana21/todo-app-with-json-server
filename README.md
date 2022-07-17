@@ -32,7 +32,7 @@
     - `HEAD`
     - `OPTIONS`: related to CORS, it does not give you information from JavaScript.
 
-## React app backend calls, with load and error feedback ([demo](https://at-react-course.herokuapp.com/tasks)) 
+## React app backend calls, with load and error feedback.
 
 - The _App_ component is prepared to display the appropriate visual components according to the different states that the interface may have:
   
