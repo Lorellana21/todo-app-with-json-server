@@ -1,6 +1,5 @@
 # todo-app-with-json-server
 
-## What is this for?
 
 ## Main concepts
 
@@ -61,7 +60,6 @@
   process.env.REACT_APP_BASE_URL
   ```
 
-- I define in the service the `getAll()` method that invokes the backend to get the list of tasks.
 
 - The result query returning a 
   [Promise](https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Objetos_globales/Promise),

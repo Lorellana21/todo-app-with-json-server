@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 
+import TasksList from "./TaskList";
+import TaskListService from "../services/TaskListService";
+
 import Alert from "@mui/material/Alert";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
@@ -9,51 +12,92 @@ import Container from "@mui/material/Container";
 import Snackbar from "@mui/material/Snackbar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { getAll } from "../services/taskListService";
-import TasksList from "./TaskList";
 
 //Máquina de estados: transiciones de estados de la app con Constantes
-/*Lo ponemos aqui para que solo se ejecute una vez, 
-con el primer import que hagamos, este tiene que 
-ver con el motor de JavaScript */
-const INIT = "init";
-const LOADING = "loading";
-const OK = "ok";
-const KO = "Error";
+const UiState = {
+  None: 0,
+  Ready: 1,
+  Loading: 2,
+  ErrorLoading: 3,
+  Processing: 4,
+  ErrorProcessing: 5,
+};
 
 const App = () => {
-  const [appState, setAppState] = useState(INIT); //estado global del componente con valor inicial INIT
+  const [uiState, setUiState] = useState(UiState.None); //estado global del componente con valor inicial INIT
   const [tasks, setTasks] = useState([]);
-  const [counter, setCounter] = useState(0);
 
   //implementamos la carga inicial
-  useEffect(() => {
-    setAppState(LOADING);
-    getAll()
-      .then((response) => {
-        setTasks(response.data);
-        setAppState(OK);
-      })
-      .catch((error) => {
-        console.error(error);
-        setAppState(KO);
-      });
-  }, [counter]);
-
-  const retry = () => {
-    setCounter(counter + 1);
-    console.log(counter);
+  const fetchAllTasks = async () => {
+    setUiState(UiState.Loading);
+    try {
+      const res = await TaskListService.getAll();
+      setTasks(res.data);
+      setUiState(UiState.Ready);
+    } catch {
+      setUiState(UiState.ErrorLoading);
+    }
+  };
+  //handlers
+  const createTaskHandler = async (description) => {
+    setUiState(UiState.Processing);
+    try {
+      const res = await TaskListService.create(description);
+      setTasks((prevTasks) => [...prevTasks, res.data]);
+      setUiState(UiState.Ready);
+    } catch {
+      setUiState(UiState.ErrorProcessing);
+    }
   };
 
-  /*Si no ponemos el useCallback las referencias, cada vez que 
+  const toggleDoneTaskHandler = async (task) => {
+    setUiState(UiState.Processing);
+    try {
+      const res = await TaskListService.toggleDone(task);
+      setTasks((prevTasks) =>
+        prevTasks.map((t) => (t.id === task.id ? res.data : t))
+      );
+      setUiState(UiState.Ready);
+    } catch {
+      setUiState(UiState.ErrorProcessing);
+    }
+  };
+
+  const deleteTaskHandler = async (task) => {
+    setUiState(UiState.Processing);
+    try {
+      await TaskListService.delete(task);
+      setTasks((prevTasks) => prevTasks.filter((t) => t.id !== task.id));
+      setUiState(UiState.Ready);
+    } catch {
+      setUiState(UiState.ErrorProcessing);
+    }
+  };
+
+  const snackbarCloseHandler = () => {
+    if (uiState === UiState.ErrorProcessing) {
+      setUiState(UiState.Ready);
+    }
+  };
+
+  const isTasksListVisible = [
+    UiState.Ready,
+    UiState.Processing,
+    UiState.ErrorProcessing,
+  ].includes(uiState);
+
+  /*Haciéndolo con useCallback*/
+  /*si no lo ponemos, las referencias, cada vez que 
   cambie el estado de la función, van a cambiar, y se van a estar 
   creando las referencias de la función continuamente. Esto se 
   lo estamos pasando a otro componente*/
-  const createTask = useCallback((description) => {}, []);
+  // const createTask = useCallback((description) => {}, []);
+  // const toggleDoneTask = useCallback((task) => {}, []);
+  // const deleteTask = useCallback((task) => {}, []);
 
-  const toggleDoneTask = useCallback((task) => {}, []);
-
-  const deleteTask = useCallback((task) => {}, []);
+  useEffect(() => {
+    fetchAllTasks();
+  }, []);
 
   return (
     <>
@@ -64,45 +108,42 @@ const App = () => {
       </AppBar>
       <Container>
         {/* solo se ejecuta si es verdadero */}
-        {appState === LOADING && (
+        {uiState === UiState.Loading && (
           <Box my={10} display="flex" justifyContent="center">
             <CircularProgress />
           </Box>
         )}
-        {appState === KO && (
+        {uiState === UiState.ErrorLoading && (
           <Box my={5}>
             <Alert
               severity="error"
-              action={<Button onClick={retry}>Reintentar</Button>}
+              action={<Button onClick={fetchAllTasks}>Reintentar</Button>}
             >
               No se pudo cargar la lista de tareas
             </Alert>
           </Box>
         )}
 
-        {appState === OK && (
+        {isTasksListVisible && (
           <TasksList
             tasks={tasks}
-            disabled={true}
+            disabled={uiState === UiState.Processing}
             //operaciones que se pueden hacer sobre las tareas
-            onDeleteTask={deleteTask}
-            onCreateTask={createTask}
-            onToggleDoneTask={toggleDoneTask}
+            onDeleteTask={deleteTaskHandler}
+            onCreateTask={createTaskHandler}
+            onToggleDoneTask={toggleDoneTaskHandler}
           />
         )}
-
-        {appState === KO && (
-          <Snackbar
-            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            autoHideDuration={3000}
-            open={true}
-            onClose={() => {}}
-          >
-            <Alert severity="error">
-              Ocurrió un error al procesar la solicitud
-            </Alert>
-          </Snackbar>
-        )}
+        <Snackbar
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          autoHideDuration={3000}
+          open={uiState === UiState.ErrorProcessing}
+          onClose={snackbarCloseHandler}
+        >
+          <Alert severity="error">
+            Ocurrió un error al procesar la solicitud
+          </Alert>
+        </Snackbar>
       </Container>
     </>
   );
